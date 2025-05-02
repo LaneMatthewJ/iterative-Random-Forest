@@ -1,5 +1,24 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Yu-Group/iterative-Random-Forest/master)
 
+
+
+
+
+UPDATES: 
+
+updating the code to use cython 3 instead of cython 1.7 or whatever. 
+
+Brand new env ./env
+$ conda create -p ./env python
+$ conda activate ./env
+$ pip install Cython 
+$ pip install numpy 
+$ pip install .
+
+
+
+
+
 # iterative Random Forest
 The algorithm details are available at: 
 
