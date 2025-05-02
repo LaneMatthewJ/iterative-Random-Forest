@@ -1,38 +1,52 @@
 import os
-
+from setuptools import setup, Extension, find_packages
+from Cython.Build import cythonize
 import numpy
-from numpy.distutils.misc_util import Configuration
 
+# Determine libraries to link
+libraries = []
+if os.name == 'posix':
+    libraries.append('m')  # Link math library on POSIX systems
 
-def configuration(parent_package="", top_path=None):
-    config = Configuration("tree", parent_package, top_path)
-    libraries = []
-    if os.name == 'posix':
-        libraries.append('m')
-    config.add_extension("_tree",
-                         sources=["_tree.pyx"],
-                         include_dirs=[numpy.get_include()],
-                         libraries=libraries,
-                         extra_compile_args=["-O3"])
-    config.add_extension("_splitter",
-                         sources=["_splitter.pyx"],
-                         include_dirs=[numpy.get_include()],
-                         libraries=libraries,
-                         extra_compile_args=["-O3"])
-    config.add_extension("_criterion",
-                         sources=["_criterion.pyx"],
-                         include_dirs=[numpy.get_include()],
-                         libraries=libraries,
-                         extra_compile_args=["-O3"])
-    config.add_extension("_utils",
-                         sources=["_utils.pyx"],
-                         include_dirs=[numpy.get_include()],
-                         libraries=libraries,
-                         extra_compile_args=["-O3"])
+# List of Cython extension modules
+extensions = [
+    Extension(
+        name="tree._tree",
+        sources=["tree/_tree.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        name="tree._splitter",
+        sources=["tree/_splitter.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        name="tree._criterion",
+        sources=["tree/_criterion.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        name="tree._utils",
+        sources=["tree/_utils.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+]
 
-
-    return config
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-    setup(**configuration().todict())
+setup(
+    name="tree",
+    version="0.1",
+    packages=find_packages(where=".", include=["tree", "tree.*"]),
+    ext_modules=cythonize(
+        extensions,
+        compiler_directives={"language_level": "3"}
+    ),
+    zip_safe=False,
+)

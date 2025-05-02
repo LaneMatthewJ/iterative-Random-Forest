@@ -1,3 +1,4 @@
+# cython: language_level=3
 # cython: cdivision=True
 # cython: boundscheck=False
 # cython: wraparound=False
@@ -193,7 +194,7 @@ cdef class Splitter:
         return 0
 
     cdef int node_reset(self, SIZE_t start, SIZE_t end,
-                        double* weighted_n_node_samples) nogil except -1:
+                        double* weighted_n_node_samples) except -1 nogil:
         """Reset splitter on node samples[start:end].
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -224,7 +225,7 @@ cdef class Splitter:
         return 0
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) nogil except -1:
+                        SIZE_t* n_constant_features) except -1 nogil:
         """Find the best split on node samples[start:end].
 
         This is a placeholder method. The majority of computation will be done
@@ -320,7 +321,7 @@ cdef class BestSplitter(BaseDenseSplitter):
                                self.presort), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) nogil except -1:
+                        SIZE_t* n_constant_features) except -1 nogil:
         """Find the best split on node samples[start:end]
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -401,7 +402,7 @@ cdef class BestSplitter(BaseDenseSplitter):
             # - [n_known_constant:n_total_constant[ holds newly found constant
             #   features;
             # - [n_total_constant:f_i[ holds features that haven't been drawn
-            #   yet and aren't constant apriori.
+            #   yet and aren't constant a   ori.
             # - [f_i:n_features[ holds features that have been drawn
             #   and aren't constant.
 
@@ -668,7 +669,7 @@ cdef class RandomSplitter(BaseDenseSplitter):
                                  self.presort), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) nogil except -1:
+                        SIZE_t* n_constant_features) except -1 nogil:
         """Find the best random split on node samples[start:end]
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -1053,7 +1054,7 @@ cdef class BaseSparseSplitter(Splitter):
                                          end_negative, start_positive)
 
 
-cdef int compare_SIZE_t(const void* a, const void* b) nogil:
+cdef int compare_SIZE_t(const void* a, const void* b) noexcept nogil:
     """Comparison function for sort."""
     return <int>((<SIZE_t*>a)[0] - (<SIZE_t*>b)[0])
 
@@ -1215,7 +1216,7 @@ cdef class BestSparseSplitter(BaseSparseSplitter):
                                      self.presort), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) nogil except -1:
+                        SIZE_t* n_constant_features) except -1 nogil:
         """Find the best split on node samples[start:end], using sparse features
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -1445,7 +1446,7 @@ cdef class RandomSparseSplitter(BaseSparseSplitter):
                                        self.presort), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features) nogil except -1:
+                        SIZE_t* n_constant_features) except -1 nogil:
         """Find a random split on node samples[start:end], using sparse features
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)

@@ -91,7 +91,7 @@ class TreeWeightsMixin(BaseDecisionTree):
             sample_weight=None, 
             check_input=True,
             X_idx_sorted=None):
-        
+        print("FITTING SHIT")
         feature_weight = self.feature_weight # get feature_weight from attribute
         self.n_features_ = X.shape[1]
         
@@ -241,6 +241,7 @@ class TreeWeightsMixin(BaseDecisionTree):
                                  (len(sample_weight), n_samples))
 
         if feature_weight is not None:
+            print("FEATURE WEIGHT IS NOT NONE: ", feature_weight)
             if (getattr(feature_weight, "dtype", None) != DOUBLE or
                     not feature_weight.flags.contiguous):
                 feature_weight = np.ascontiguousarray(
@@ -358,7 +359,7 @@ class TreeWeightsMixin(BaseDecisionTree):
                                            max_leaf_nodes,
                                            self.min_impurity_decrease,
                                            min_impurity_split)
-
+        print("Feature weight pre-builder: ", feature_weight)
         builder.build(self.tree_, X, y, sample_weight, feature_weight,
                       X_idx_sorted)
 
@@ -401,9 +402,9 @@ class WeightedDecisionTreeClassifier(TreeWeightsMixin, DecisionTreeClassifier):
                          random_state=random_state,
                          max_leaf_nodes=max_leaf_nodes,
                          min_impurity_decrease=min_impurity_decrease,
-                         min_impurity_split=min_impurity_split,
+                        #  min_impurity_split=min_impurity_split,
                          class_weight=class_weight,
-                         presort=presort,
+                        #  presort=presort,
                          ccp_alpha=ccp_alpha,)
 
         if SKLEARN_VERSION >= parse('1.0'):
@@ -447,6 +448,7 @@ class WeightedDecisionTreeRegressor(TreeWeightsMixin, DecisionTreeRegressor):
                  feature_weight=None,
                  ccp_alpha=0.0):
         self.feature_weight = feature_weight
+        print("WHAT? IN WeightedDecisionTreeRegressor ", feature_weight )
         super().__init__(
             criterion=criterion,
             splitter=splitter,
@@ -458,6 +460,6 @@ class WeightedDecisionTreeRegressor(TreeWeightsMixin, DecisionTreeRegressor):
             max_leaf_nodes=max_leaf_nodes,
             random_state=random_state,
             min_impurity_decrease=min_impurity_decrease,
-            min_impurity_split=min_impurity_split,
-            presort=presort,
+            # min_impurity_split=min_impurity_split,
+            # presort=presort,
             ccp_alpha=ccp_alpha)

@@ -1,3 +1,3 @@
-from .wrf import (RandomForestClassifierWithWeights, 
+from irf.ensemble.wrf import (RandomForestClassifierWithWeights, 
                   RandomForestRegressorWithWeights)
-from .wrf import (wrf, wrf_reg)
+from irf.ensemble.wrf import (wrf, wrf_reg)

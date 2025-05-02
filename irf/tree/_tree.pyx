@@ -1,3 +1,4 @@
+# cython: language_level=3
 # cython: cdivision=True
 # cython: boundscheck=False
 # cython: wraparound=False
@@ -26,6 +27,7 @@ from libc.string cimport memset
 import numpy as np
 cimport numpy as np
 np.import_array()
+from numpy cimport PyArray_SetBaseObject
 
 from scipy.sparse import issparse
 from scipy.sparse import csc_matrix
@@ -50,6 +52,7 @@ cdef extern from "numpy/arrayobject.h":
 
 from numpy import float32 as DTYPE
 from numpy import float64 as DOUBLE
+
 
 cdef double INFINITY = np.inf
 cdef double EPSILON = np.finfo('double').eps
@@ -96,8 +99,7 @@ cdef class TreeBuilder:
                 np.ndarray X_idx_sorted=None):
         """Build a decision tree from the training set (X, y)."""
         pass
-
-    cdef inline _check_input(self, object X, np.ndarray y,
+    cdef tuple _check_input(self, object X, np.ndarray y,
                              np.ndarray sample_weight,
                              np.ndarray feature_weight):
         """Check input dtype, layout and format"""
@@ -172,7 +174,7 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef int init_capacity
 
         if tree.max_depth <= 10:
-            init_capacity = (2 ** (tree.max_depth + 1)) - 1
+            init_capacity = (1 << (tree.max_depth + 1)) - 1
         else:
             init_capacity = 2047
 
@@ -295,7 +297,7 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
 # Best first builder ----------------------------------------------------------
 
 cdef inline int _add_to_frontier(PriorityHeapRecord* rec,
-                                 PriorityHeap frontier) nogil except -1:
+                                 PriorityHeap frontier) except -1 nogil:
     """Adds record ``rec`` to the priority queue ``frontier``
 
     Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -450,7 +452,7 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
                                     SIZE_t start, SIZE_t end, double impurity,
                                     bint is_first, bint is_left, Node* parent,
                                     SIZE_t depth,
-                                    PriorityHeapRecord* res) nogil except -1:
+                                    PriorityHeapRecord* res) except -1 nogil:
         """Adds node w/ partition ``[start, end)`` to the frontier. """
         cdef SplitRecord split
         cdef SIZE_t node_id
@@ -694,7 +696,7 @@ cdef class Tree:
         value = memcpy(self.value, (<np.ndarray> value_ndarray).data,
                        self.capacity * self.value_stride * sizeof(double))
 
-    cdef int _resize(self, SIZE_t capacity) nogil except -1:
+    cdef int _resize(self, SIZE_t capacity) except -1 nogil:
         """Resize all inner arrays to `capacity`, if `capacity` == -1, then
            double the size of the inner arrays.
 
@@ -708,7 +710,7 @@ cdef class Tree:
 
     # XXX using (size_t)(-1) is ugly, but SIZE_MAX is not available in C89
     # (i.e., older MSVC).
-    cdef int _resize_c(self, SIZE_t capacity=<SIZE_t>(-1)) nogil except -1:
+    cdef int _resize_c(self, SIZE_t capacity=<SIZE_t>(-1)) except -1 nogil:
         """Guts of _resize
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -742,7 +744,7 @@ cdef class Tree:
     cdef SIZE_t _add_node(self, SIZE_t parent, bint is_left, bint is_leaf,
                           SIZE_t feature, double threshold, double impurity,
                           SIZE_t n_node_samples,
-                          double weighted_n_node_samples) nogil except -1:
+                          double weighted_n_node_samples) except -1 nogil:
         """Add a node to the tree.
 
         The new node registers itself as the child of its parent.
@@ -1112,11 +1114,6 @@ cdef class Tree:
         return importances
 
     cdef np.ndarray _get_value_ndarray(self):
-        """Wraps value as a 3-d NumPy array.
-
-        The array keeps a reference to this Tree, which manages the underlying
-        memory.
-        """
         cdef np.npy_intp shape[3]
         shape[0] = <np.npy_intp> self.node_count
         shape[1] = <np.npy_intp> self.n_outputs
@@ -1124,16 +1121,11 @@ cdef class Tree:
         cdef np.ndarray arr
         arr = np.PyArray_SimpleNewFromData(3, shape, np.NPY_DOUBLE, self.value)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        PyArray_SetBaseObject(arr, self)
         return arr
 
-    cdef np.ndarray _get_node_ndarray(self):
-        """Wraps nodes as a NumPy struct array.
 
-        The array keeps a reference to this Tree, which manages the underlying
-        memory. Individual fields are publicly accessible as properties of the
-        Tree.
-        """
+    cdef np.ndarray _get_node_ndarray(self):
         cdef np.npy_intp shape[1]
         shape[0] = <np.npy_intp> self.node_count
         cdef np.npy_intp strides[1]
@@ -1141,8 +1133,8 @@ cdef class Tree:
         cdef np.ndarray arr
         Py_INCREF(NODE_DTYPE)
         arr = PyArray_NewFromDescr(np.ndarray, <np.dtype> NODE_DTYPE, 1, shape,
-                                   strides, <void*> self.nodes,
-                                   np.NPY_DEFAULT, None)
+                                strides, <void*> self.nodes,
+                                0, None)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        PyArray_SetBaseObject(arr, self)
         return arr

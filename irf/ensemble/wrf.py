@@ -2,9 +2,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.base import clone
 from abc import ABCMeta, abstractmethod
-from ..tree.tree import (WeightedDecisionTreeClassifier, 
+from irf.tree.tree import (WeightedDecisionTreeClassifier, 
                          WeightedDecisionTreeRegressor)
-from ..utils import get_rf_tree_data
+from irf.utils import get_rf_tree_data
 import numpy as np
 
 class RandomForestClassifierWithWeights(RandomForestClassifier):
@@ -40,7 +40,9 @@ class RandomForestRegressorWithWeights(RandomForestRegressor):
         if feature_weight is not None:
             self.base_estimator_.feature_weight = np.array(feature_weight).copy()
             self.base_estimator.feature_weight = np.array(feature_weight).copy()
-
+            print("Updated the new codebase. ")
+            print(self.base_estimator_.feature_weight)
+            print(self.base_estimator.feature_weight)
         return super(RandomForestRegressorWithWeights, self).fit(X, y, sample_weight)
         
 class wrf(RandomForestClassifierWithWeights):
