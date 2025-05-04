@@ -9,23 +9,71 @@ import numpy as np
 from sklearn.tree import _tree as sk_tree
 
 class RandomForestClassifierWithWeights(RandomForestClassifier):
+    def __init__(self, 
+                 n_estimators=100,
+                 *,
+                 criterion="squared_error",
+                 max_depth=None,
+                 min_samples_split=2,
+                 min_samples_leaf=1,
+                 min_weight_fraction_leaf=0.0,
+                 max_features=1.0,
+                 max_leaf_nodes=None,
+                 min_impurity_decrease=0.0,
+                 bootstrap=True,
+                 oob_score=False,
+                 n_jobs=None,
+                 random_state=None,
+                 verbose=0,
+                 warm_start=False,
+                 ccp_alpha=0.0,
+                 max_samples=None):
+        super().__init__(
+            n_estimators=n_estimators,
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            min_weight_fraction_leaf=min_weight_fraction_leaf,
+            max_features=max_features,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
+            bootstrap=bootstrap,
+            oob_score=oob_score,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose,
+            warm_start=warm_start,
+            ccp_alpha=ccp_alpha,
+            max_samples=max_samples,
+        )
     @property
     def n_paths(self):
         if not hasattr(self, "estimators_"):
             return 0
         out = 0
         for tree in self.estimators_:
-            out += np.sum(tree.tree_.feature == sk_tree.TREE_UNDEFINED)
+            out += np.sum(tree.tree_.feature == sk_tree.TREE_UNDEFINED) #out += np.sum(tree.tree_.feature == -2)
         return out
     def fit(self, X, y, sample_weight=None, feature_weight=None):
-        self.estimators_ = WeightedDecisionTreeClassifier(feature_weight=feature_weight)
-        # self.base_estimator = WeightedDecisionTreeClassifier()
-        # self.base_estimator_ = WeightedDecisionTreeClassifier()
-        # if feature_weight is not None:
-        #     self.base_estimator.feature_weight = feature_weight
-        #     self.base_estimator_.feature_weight = feature_weight
-            
-        return super(RandomForestClassifierWithWeights, self).fit(X, y, sample_weight)
+        self.estimators_ = []
+        for _ in range(self.n_estimators):
+            # Create a new custom tree with any custom parameters
+            tree = WeightedDecisionTreeClassifier(
+                max_depth=self.max_depth,
+                max_features=self.max_features,
+                criterion=self.criterion,
+                min_samples_split=self.min_samples_split,
+                min_samples_leaf=self.min_samples_leaf,
+                min_weight_fraction_leaf=self.min_weight_fraction_leaf,
+                max_leaf_nodes=self.max_leaf_nodes,
+                min_impurity_decrease=self.min_impurity_decrease,
+                feature_weight=feature_weight  # <- custom param
+            )
+            # Fit tree
+            tree.fit(X, y, sample_weight=sample_weight)
+            self.estimators_.append(tree)
+        return self # super(RandomForestRegressorWithWeights, self).fit(X, y, sample_weight)
 
 class RandomForestRegressorWithWeights(RandomForestRegressor):
     def __init__(self, 
@@ -66,28 +114,6 @@ class RandomForestRegressorWithWeights(RandomForestRegressor):
             ccp_alpha=ccp_alpha,
             max_samples=max_samples,
         )
-        # self.estimator = WeightedDecisionTreeRegressor(
-        #     criterion=criterion,
-        #     max_depth=max_depth,
-        #     min_samples_split=min_samples_split,
-        #     min_samples_leaf=min_samples_leaf,
-        #     min_weight_fraction_leaf=min_weight_fraction_leaf,
-        #     max_features=max_features,
-        #     max_leaf_nodes=max_leaf_nodes,
-        #     min_impurity_decrease=min_impurity_decrease,
-        #     ccp_alpha=ccp_alpha,
-        #     monotonic_cst = monotonic_cst,
-        #     feature_weight = None,
-        # )
-
-    # def _make_estimator(self, append=True):
-    #     """Override to use custom estimator."""
-    #     estimator = clone(self.estimator)
-    #     estimator.set_params(**{"random_state": self._get_estimator_random_state()})
-    #     if append:
-    #         self.estimators_.append(estimator)
-    #     return estimator
-    
     @property
     def n_paths(self):
         if not hasattr(self, "estimators_"):
@@ -97,19 +123,8 @@ class RandomForestRegressorWithWeights(RandomForestRegressor):
             out += np.sum(tree.tree_.feature == sk_tree.TREE_UNDEFINED) #out += np.sum(tree.tree_.feature == -2)
         return out
     def fit(self, X, y, sample_weight=None, feature_weight=None):
-        # X, y = self._validate_data(X, y, accept_sparse="csc", dtype=DTYPE, force_all_finite=False)
-        # self.n_features_in_ = X.shape[1]
-
-        # Initialize output structures
         self.estimators_ = []
-        # self.n_outputs_ = y.shape[1] if y.ndim > 1 else 1
-
-        # Set random seed for reproducibility
-        # random_state = check_random_state(self.random_state)
-
         for _ in range(self.n_estimators):
-            # tree_random_state = random_state.randint(np.iinfo(np.int32).max)
-
             # Create a new custom tree with any custom parameters
             tree = WeightedDecisionTreeRegressor(
                 max_depth=self.max_depth,
@@ -122,12 +137,9 @@ class RandomForestRegressorWithWeights(RandomForestRegressor):
                 min_impurity_decrease=self.min_impurity_decrease,
                 feature_weight=feature_weight  # <- custom param
             )
-
             # Fit tree
             tree.fit(X, y, sample_weight=sample_weight)
-
             self.estimators_.append(tree)
-       
         return self # super(RandomForestRegressorWithWeights, self).fit(X, y, sample_weight)
         
 class wrf(RandomForestClassifierWithWeights):
