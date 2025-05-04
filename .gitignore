@@ -11,3 +11,4 @@ dist/
 *.so
 site/
 env
+.DS_Store
