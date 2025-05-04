@@ -127,7 +127,7 @@ class WeightedDecisionTreeClassifier(RegressorMixin, BaseDecisionTree):
         self.ccp_alpha = ccp_alpha
         self.monotonic_cst = monotonic_cst
         self.feature_weight = feature_weight
-        
+
     # def predict(self, X):
     #     check_is_fitted(self, "tree_")          # raises the right error if fit() hasn’t been called
     #     X = check_array(X, dtype=DTYPE, accept_sparse="csc")
@@ -137,7 +137,6 @@ class WeightedDecisionTreeClassifier(RegressorMixin, BaseDecisionTree):
             sample_weight=None, 
             check_input=True,
             X_idx_sorted=None):
-        print("\n\n\n\n\nFITTING SHIT\n\n\n\n\n")
         feature_weight = self.feature_weight # get feature_weight from attribute
         self.n_features_ = X.shape[1]
         
@@ -290,7 +289,6 @@ class WeightedDecisionTreeClassifier(RegressorMixin, BaseDecisionTree):
                                  (len(sample_weight), n_samples))
 
         if feature_weight is not None:
-            print("FEATURE WEIGHT IS NOT NONE: ", feature_weight)
             if (getattr(feature_weight, "dtype", None) != DOUBLE or
                     not feature_weight.flags.contiguous):
                 feature_weight = np.ascontiguousarray(
@@ -408,7 +406,6 @@ class WeightedDecisionTreeClassifier(RegressorMixin, BaseDecisionTree):
                                            max_leaf_nodes,
                                            self.min_impurity_decrease,
                                            min_impurity_split)
-        print("Feature weight pre-builder: ", feature_weight)
         builder.build(self.tree_, X, y, sample_weight, feature_weight,
                       X_idx_sorted)
 
@@ -462,7 +459,6 @@ class WeightedDecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
             sample_weight=None, 
             check_input=True,
             X_idx_sorted=None):
-        print("\n\n\n\n\nFITTING SHIT\n\n\n\n\n")
         feature_weight = self.feature_weight # get feature_weight from attribute
         self.n_features_ = X.shape[1]
         
@@ -615,7 +611,6 @@ class WeightedDecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
                                  (len(sample_weight), n_samples))
 
         if feature_weight is not None:
-            print("FEATURE WEIGHT IS NOT NONE: ", feature_weight)
             if (getattr(feature_weight, "dtype", None) != DOUBLE or
                     not feature_weight.flags.contiguous):
                 feature_weight = np.ascontiguousarray(
@@ -733,7 +728,6 @@ class WeightedDecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
                                            max_leaf_nodes,
                                            self.min_impurity_decrease,
                                            min_impurity_split)
-        print("Feature weight pre-builder: ", feature_weight)
         builder.build(self.tree_, X, y, sample_weight, feature_weight,
                       X_idx_sorted)
 
